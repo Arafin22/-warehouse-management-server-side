@@ -24,6 +24,18 @@ async function run() {
     const productCollection = client
       .db("booksInventory")
       .collection("products");
+
+    app.get("/products", async (req, res) => {
+      const products = await productCollection.find({}).toArray();
+      res.send(products);
+    });
+
+    app.post("/productupload", async (req, res) => {
+      const productin = req.body;
+
+      const result = await productCollection.insertOne(productin);
+      res.send({ success: "Upload product Successfully" });
+    });
   } finally {
     //await client.close();
   }
