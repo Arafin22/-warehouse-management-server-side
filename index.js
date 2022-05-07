@@ -25,6 +25,15 @@ async function run() {
       .db("booksInventory")
       .collection("products");
 
+    //jsonwebtoken create
+    app.post("/login", async (req, res) => {
+      const email = req.body;
+      console.log(email);
+      const token = jwt.sign(email, process.env.ACCESS_KEY);
+      console.log(token);
+      res.send({ token });
+    });
+
     app.get("/products", async (req, res) => {
       const products = await productCollection.find({}).toArray();
       res.send(products);
@@ -71,21 +80,39 @@ async function run() {
 
     app.post("/uploadPd", async (req, res) => {
       const product = req.body;
-      // console.log(product);
+      console.log(product);
       const tokeninfo = req.headers.authorization;
-      // console.log(tokeninfo);
+      console.log(tokeninfo);
 
-      // const [email, accessToken] = tokeninfo?.split(" ");
-      // console.log(accessToken);
-      // const decoded = verifyToken(accessToken);
+      const [email, accessToken] = tokeninfo?.split(" ");
+      console.log(accessToken);
+      const decoded = verifyToken(accessToken);
 
-      // console.log(email, decoded);
-      // if (email === decoded.email) {
-      const result = await productCollection.insertOne(product);
-      res.send({ success: "Product Upload Successfully" });
-      // } else {
-      //   res.send({ success: "unAuthorize" });
-      // }
+      console.log(email, decoded);
+      if (email === decoded.email) {
+        const result = await productCollection.insertOne(product);
+        res.send({ success: "Product Upload Successfully" });
+      } else {
+        res.send({ success: "unAuthorize" });
+      }
+    });
+
+    //myitem
+    app.get("/useraddlist", async (req, res) => {
+      adduser = req.body;
+
+      const tokeninfo = req.headers.authorization;
+
+      const [email, accessToken] = tokeninfo?.split(" ");
+      console.log(accessToken, adduser);
+      const decoded = verifyToken(accessToken);
+
+      if (email === decoded.email) {
+        const orders = await productCollection.find((email = email)).toArray();
+        res.send(orders);
+      } else {
+        res.send({ success: "unAuthorize order name" });
+      }
     });
 
     app.delete("/manageinventory/:id", async (req, res) => {
@@ -103,6 +130,20 @@ run().catch(console.dir);
 app.get("/", (req, res) => {
   res.send("Hello World!");
 });
+
+function verifyToken(token) {
+  let email;
+  jwt.verify(token, process.env.ACCESS_KEY, function (err, decoded) {
+    if (err) {
+      email = "Invalid email";
+    }
+    if (decoded) {
+      console.log(decoded);
+      email = decoded;
+    }
+  });
+  return email;
+}
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
