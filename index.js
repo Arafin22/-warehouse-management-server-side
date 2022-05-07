@@ -1,6 +1,7 @@
 const express = require("express");
 const app = express();
 var cors = require("cors");
+const jwt = require("jsonwebtoken");
 
 app.use(cors());
 app.use(express.json());
@@ -10,6 +11,7 @@ require("dotenv").config();
 const port = process.env.PORT || 5000;
 
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+const { query } = require("express");
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.fiojy.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, {
   useNewUrlParser: true,
@@ -80,15 +82,15 @@ async function run() {
 
     app.post("/uploadPd", async (req, res) => {
       const product = req.body;
-      console.log(product);
+      // console.log("uploadPd", product);
       const tokeninfo = req.headers.authorization;
-      console.log(tokeninfo);
+      // console.log("uploadPd", tokeninfo);
 
       const [email, accessToken] = tokeninfo?.split(" ");
-      console.log(accessToken);
+      // console.log("uploadPd", accessToken);
       const decoded = verifyToken(accessToken);
 
-      console.log(email, decoded);
+      // console.log("uploadPd", email, decoded);
       if (email === decoded.email) {
         const result = await productCollection.insertOne(product);
         res.send({ success: "Product Upload Successfully" });
@@ -98,17 +100,20 @@ async function run() {
     });
 
     //myitem
-    app.get("/useraddlist", async (req, res) => {
-      adduser = req.body;
+    app.get("/myitem", async (req, res) => {
+      // const myitem = req.body;
 
       const tokeninfo = req.headers.authorization;
 
       const [email, accessToken] = tokeninfo?.split(" ");
-      console.log(accessToken, adduser);
+      console.log("myitem", accessToken);
       const decoded = verifyToken(accessToken);
 
+      console.log(decoded, decoded.email, email, "myitem");
+
       if (email === decoded.email) {
-        const orders = await productCollection.find((email = email)).toArray();
+        var query = { email: email };
+        const orders = await productCollection.find(query).toArray();
         res.send(orders);
       } else {
         res.send({ success: "unAuthorize order name" });
