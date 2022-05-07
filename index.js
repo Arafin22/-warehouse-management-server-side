@@ -36,6 +36,64 @@ async function run() {
       const result = await productCollection.insertOne(productin);
       res.send({ success: "Upload product Successfully" });
     });
+
+    app.get("/product/:id", async (req, res) => {
+      const id = req.params.id;
+      // console.log(id);
+      const query = { _id: ObjectId(id) };
+      const product = await productCollection.findOne(query);
+      res.send(product);
+    });
+
+    // update user
+    app.put("/product/:id", async (req, res) => {
+      const id = req.params.id;
+      const updatedProduct = req.body;
+      console.log(updatedProduct.quantity);
+      console.log(typeof updatedProduct.quantity);
+      const filter = { _id: ObjectId(id) };
+      const options = { upsert: true };
+      const updatedDoc = {
+        $set: {
+          // name: updatedProduct.name,
+          // email: updatedProduct.email,
+          quantity: updatedProduct.quantity,
+          // price: updatedProduct.price,
+        },
+      };
+      const result = await productCollection.updateOne(
+        filter,
+        updatedDoc,
+        options
+      );
+      res.send(result);
+    });
+
+    app.post("/uploadPd", async (req, res) => {
+      const product = req.body;
+      // console.log(product);
+      const tokeninfo = req.headers.authorization;
+      // console.log(tokeninfo);
+
+      // const [email, accessToken] = tokeninfo?.split(" ");
+      // console.log(accessToken);
+      // const decoded = verifyToken(accessToken);
+
+      // console.log(email, decoded);
+      // if (email === decoded.email) {
+      const result = await productCollection.insertOne(product);
+      res.send({ success: "Product Upload Successfully" });
+      // } else {
+      //   res.send({ success: "unAuthorize" });
+      // }
+    });
+
+    app.delete("/manageinventory/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await productCollection.deleteOne(query);
+      res.send(result);
+    });
   } finally {
     //await client.close();
   }
